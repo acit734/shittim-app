@@ -296,12 +296,40 @@ let LoginPage = function() {
             })
         }, 3000)
     }
+    async function login_page_inner_box_mouseenter() {
+        let sin_elaps = 0;
+
+        login_page_inner_box.removeEventListener("mouseenter", login_page_inner_box_mouseenter)
+        
+        login_page_plus_2.style.transform = "translate(-30px, 30px)";
+        
+        await wait(300);
+        
+        login_page_plus_1.style.transform = "translate(31px, -30px)";
+        login_page_plus_2.style.transform = "translate(-30px, -30px)";
+        
+        await wait(300);
+        
+        let elapsed = performance.now();
+        function go_down() {
+            if (sin_elaps > 0.9) return;
+            sin_elaps = Math.abs(Math.sin(((performance.now() - elapsed) / 3000) * (Math.PI/2)));
+            const translate = (sin_elaps * 60) - 30;
+            
+            login_page_plus_1.style.transform = `translate(31px, ${translate}px)`;
+            login_page_plus_2.style.transform = `translate(-30px, ${translate}px)`;
+
+            requestAnimationFrame(go_down);
+        }
+        go_down()
+    }
 
     login_page_username_input.addEventListener("focus", login_page_username_input_focus);
     login_page_username_input.addEventListener("blur", login_page_username_input_blur);
     login_page_password_input.addEventListener("focus", login_page_password_input_focus);
     login_page_password_input.addEventListener("blur", login_page_password_input_blur);
     login_page_password_input.addEventListener("input", login_page_password_input_input);
+    login_page_inner_box.addEventListener("mouseenter", login_page_inner_box_mouseenter)
 }
 LoginPage();
 // !SECTION

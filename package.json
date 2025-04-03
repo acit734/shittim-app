@@ -1,0 +1,41 @@
+{
+  "name": "proyek-2",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "Nadir Zalaludin Rasid",
+  "license": "ISC",
+  "description": "Aplikasi Shittim Chest yang terinspirasi dari Blue Archive.",
+  "devDependencies": {
+    "electron": "35.0.1",
+    "electron-builder": "25.1.8"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "express": "^4.21.2",
+    "lmdb": "^3.2.6",
+    "music-metadata": "^11.0.2",
+    "socket.io": "^4.8.1"
+  },
+  "type": "commonjs",
+  "build": {
+    "appId": "com.acit.shittimchest",
+    "productName": "Shittim Chest",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "interface/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "interface/assets/image/icon.ico"
+    }
+  }
+}

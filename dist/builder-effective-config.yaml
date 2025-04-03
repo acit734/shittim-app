@@ -1,0 +1,14 @@
+directories:
+  output: dist
+  buildResources: build
+appId: com.acit.shittimchest
+productName: Shittim Chest
+files:
+  - filter:
+      - main.js
+      - interface/**/*
+      - package.json
+win:
+  target: nsis
+  icon: interface/assets/image/icon.ico
+electronVersion: 35.0.1

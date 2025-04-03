@@ -18,7 +18,7 @@ let music_metadata;
 const __interface = path.join(__dirname, "interface");
 const __assets = path.join(__interface, "assets");
 
-const mime = JSON.parse(fs.readFileSync(path.join(__dirname, "mime.json")));
+const mime = JSON.parse(fs.readFileSync(path.join(__dirname, "data", "misc", "mime.json")));
 
 app.whenReady().then(() => {
     const win = new BrowserWindow({

@@ -93,18 +93,22 @@ const main_login_page = document.querySelector(".main#login-page");
 const login_page_login_form_container = document.querySelector(".login-page#login-form-container");
 const login_page_username_input = document.querySelector(".login-page#username-input");
 const login_page_password_input = document.querySelector(".login-page#password-input");
+const login_page_scanner_canvas = document.querySelector(".login-page#scanner-canvas");
+const login_page_box_scanner = document.querySelector(".login-page#box-scanner");
 const login_page_login_text = document.querySelector(".login-page#login-text");
 const login_page_login_form = document.querySelector(".login-page#login-form");
 const login_page_outer_box = document.querySelector(".login-page#outer-box");
+const login_page_inner_box = document.querySelector(".login-page#inner-box");
 const login_page_plus_1 = document.querySelector(".login-page#plus-1");
 const login_page_plus_2 = document.querySelector(".login-page#plus-2");
-const login_page_inner_box = document.querySelector(".login-page#inner-box");
+const login_page_plus_3 = document.querySelector(".login-page#plus-3");
+const login_page_plus_4 = document.querySelector(".login-page#plus-4");
 // !SECTION
 
 // SECTION Loading Page
 const main_loading_page = document.querySelector(".main#loading-page");
-const loading_page_loading_progress = document.querySelector(".loading-page#loading-progress");
 const loading_page_progress_percentage = document.querySelector(".loading-page#progress-percentage");
+const loading_page_loading_progress = document.querySelector(".loading-page#loading-progress");
 const loading_page_particle_canvas = document.querySelector(".loading-page#particle-canvas");
 const loading_page_loading_logo = document.querySelector(".loading-page#loading-logo");
 const loading_page_progress_bar = document.querySelector(".loading-page#progress-bar");
@@ -147,6 +151,7 @@ let stored_data = {};
         ["audio", "Arona-Voicelines", "login-page-wrong-pass.wav"],
         ["audio", "Arona-Voicelines", "login-page-auth-success.wav"],
         ["audio", "BA-Sound-Effects", "SE_Confirm_02.wav"],
+        ["audio", "BA-Sound-Effects", "SE_Booting_01.wav"],
     ];
     let completed_req = 0;
 
@@ -297,7 +302,7 @@ let LoginPage = function() {
         }, 3000)
     }
     async function login_page_inner_box_mouseenter() {
-        let sin_elaps = 0;
+        const ctx = login_page_scanner_canvas.getContext("2d");
 
         login_page_inner_box.removeEventListener("mouseenter", login_page_inner_box_mouseenter)
         
@@ -308,20 +313,47 @@ let LoginPage = function() {
         login_page_plus_1.style.transform = "translate(31px, -30px)";
         login_page_plus_2.style.transform = "translate(-30px, -30px)";
         
+        new Audio(stored_data["audio/BA-Sound-Effects/SE_Booting_01.wav"]).play();
+        
         await wait(300);
         
         let elapsed = performance.now();
-        function go_down() {
-            if (sin_elaps > 0.9) return;
-            sin_elaps = Math.abs(Math.sin(((performance.now() - elapsed) / 3000) * (Math.PI/2)));
-            const translate = (sin_elaps * 60) - 30;
+
+        async function go_down() {
+            const value = (performance.now() - elapsed) / 3000;
+            
+            if (value >= 1) {
+                plus4_plus4_appear();
+                return;
+            }
+
+            const translate = (value * 60) - 30;
+            const height = (value * 130);
+
+            ctx.clearRect(0, 0, login_page_scanner_canvas.width, login_page_scanner_canvas.height);
+            ctx.save();
+            ctx.fillStyle = "rgba(144, 238, 144, 0.5)";
+            ctx.fillRect(0, 0, login_page_scanner_canvas.width, height);
+            ctx.restore();
             
             login_page_plus_1.style.transform = `translate(31px, ${translate}px)`;
             login_page_plus_2.style.transform = `translate(-30px, ${translate}px)`;
 
             requestAnimationFrame(go_down);
         }
-        go_down()
+        async function plus4_plus4_appear() {
+            for (let i = 0; i < 3; i++) {
+                const opacity_now = window.getComputedStyle(login_page_plus_3).opacity;
+                const new_opacity = opacity_now === '0' ? '1' : '0';
+
+                login_page_plus_3.style.opacity = new_opacity;
+                login_page_plus_4.style.opacity = new_opacity;
+
+                await wait(100)
+            }
+        }
+
+        go_down();
     }
 
     login_page_username_input.addEventListener("focus", login_page_username_input_focus);

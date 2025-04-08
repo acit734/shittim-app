@@ -113,6 +113,10 @@ const loading_page_particle_canvas = document.querySelector(".loading-page#parti
 const loading_page_loading_logo = document.querySelector(".loading-page#loading-logo");
 const loading_page_progress_bar = document.querySelector(".loading-page#progress-bar");
 // !SECTION
+// SECTION Menu Page
+const main_menu_page = document.querySelector(".main#menu-page");
+const menu_page_interlude_image = document.querySelector(".menu-page#interlude-image");
+// !SECTION
 // !SECTION
 
 // SECTION: Asset load
@@ -126,6 +130,8 @@ let stored_data = {};
                 main_login_page.style.backgroundImage = `url(${file_url})`;
             } else if (req[1] === "logo-inverted.png") {
                 loading_page_loading_logo.style.backgroundImage = `url(${file_url})`;
+            } else if (req[2] === "Shittim_Chest_2.webp") {
+                menu_page_interlude_image.style.backgroundImage = `url(${file_url})`;
             }
         } else if (req[0] === "font") {
             if (req[1] === "Noto-Sans.ttf") {
@@ -152,6 +158,7 @@ let stored_data = {};
         ["audio", "Arona-Voicelines", "login-page-auth-success.wav"],
         ["audio", "BA-Sound-Effects", "SE_Confirm_02.wav"],
         ["audio", "BA-Sound-Effects", "SE_Booting_01.wav"],
+        ["image", "menu-page", "Shittim_Chest_2.webp"],
     ];
     let completed_req = 0;
 
@@ -351,6 +358,18 @@ let LoginPage = function() {
 
                 await wait(100)
             }
+
+            await wait(100)
+
+            remove_login_page();
+        }
+        async function remove_login_page() {
+            main_login_page.style.transform = "scale(1.2)";
+
+            await wait(300);
+
+            main_login_page.remove();
+            return;
         }
 
         go_down();

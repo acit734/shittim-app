@@ -7,19 +7,24 @@
 body {
     width: 100vw;
     height: 100vh;
+    display: flex;
+    overflow: hidden;
+    justify-content: center;
+    align-items: center;
 }
 
 .main {
     position: absolute;
+    width: 100%;
+    height: 100%;
 }
 
 /* SECTION Login Page */
 .main#login-page {
-    width: 100%;
-    height: 100%;
     background-position: center;
     background-size: cover;
     display: flex;
+    transition: transform 0.3s cubic-bezier(.55,-0.01,1,.4);
 }
 
 .login-page#login-form-container {
@@ -202,8 +207,6 @@ body {
 
 /* SECTION Loading Page */
 .main#loading-page {
-    width: 100%;
-    height: 100%;
     background-color: white;
     color: black;
     display: flex;
@@ -263,5 +266,18 @@ body {
     position: absolute;
     top: 0;
     left: 0;
+}
+/* !SECTION */
+
+/* SECTION Menu Page */
+/* .main#menu-page {
+    overflow: hidden;
+} */
+
+.menu-page#interlude-image {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
 }
 /* !SECTION */

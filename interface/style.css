@@ -35,6 +35,7 @@ body {
     justify-content: center;
     flex-direction: column;
     gap: 20px;
+    z-index: 1;
 }
 
 .login-page#login-text {
@@ -115,6 +116,7 @@ body {
     opacity: 0;
     transition: transform 0.3s ease;
     color: white;
+    text-shadow: 0px 0px 2px black;
 }
 
 .login-page#plus-3 {
@@ -127,7 +129,7 @@ body {
 
 .login-page#outer-box {
     position: absolute;
-    background-color: rgba(255, 255, 255, 0.5);
+    background-color: rgba(233, 233, 233, 0.5);
     width: 45px;
     height: 45px;
     transform: scale(0.01);
@@ -203,6 +205,18 @@ body {
     position: relative;
     top: -8px;
 }
+
+.login-page#background-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+    object-position: center;
+    object-fit: cover;
+    z-index: 0;
+}
 /* !SECTION */
 
 /* SECTION Loading Page */
@@ -212,6 +226,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 99;
 }
 
 .loading-page#loading-logo {
@@ -270,14 +285,59 @@ body {
 /* !SECTION */
 
 /* SECTION Menu Page */
-/* .main#menu-page {
-    overflow: hidden;
-} */
-
 .menu-page#interlude-image {
     width: 100%;
     height: 100%;
     background-size: cover;
     background-position: center;
+}
+
+.menu-page#background-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+    object-position: center;
+    object-fit: cover;
+    opacity: 0;
+}
+
+.menu-page#navbar {
+    width: 100%;
+    height: 30px;
+    background-color: #f9fafc;
+    color: rgb(72, 100, 154);
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-bottom: 1px solid rgba(56, 69, 85, 0.3);
+    margin-top: -60px;
+    transition: margin-top 0.3s ease;
+}
+
+.menu-page#exit-button {
+    position: absolute;
+    width: 40px;
+    aspect-ratio: 1/1;
+    border-radius: 20px;
+    background-color: rgb(72, 100, 154);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: 10px;
+    left: 20px;
+}
+
+.menu-page#selection-container {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 55%;
+    height: calc(100% - 50px);
+    background-color: black;
 }
 /* !SECTION */

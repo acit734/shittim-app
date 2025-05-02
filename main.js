@@ -75,6 +75,13 @@ app.whenReady().then(() => {
                     db.close();
                 });
             })
+        } else if (req.method === "GET") {
+            if (req.url === "/animejs") {
+                res.writeHead(200, {
+                    "Content-Type" : "application/javascript",
+                });
+                res.end(fs.readFileSync(path.join(__assets, "lib", "anime.iife.js")));
+            }
         } else {
             res.writeHead(404);
             res.end("Not Found")

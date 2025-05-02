@@ -1,3 +1,4 @@
+(() => {
 function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -91,6 +92,7 @@ class loading_page_particle {
 // SECTION: Login Page
 const main_login_page = document.querySelector(".main#login-page");
 const login_page_login_form_container = document.querySelector(".login-page#login-form-container");
+const login_page_background_video = document.querySelector(".login-page#background-video");
 const login_page_username_input = document.querySelector(".login-page#username-input");
 const login_page_password_input = document.querySelector(".login-page#password-input");
 const login_page_scanner_canvas = document.querySelector(".login-page#scanner-canvas");
@@ -116,6 +118,7 @@ const loading_page_progress_bar = document.querySelector(".loading-page#progress
 // SECTION Menu Page
 const main_menu_page = document.querySelector(".main#menu-page");
 const menu_page_interlude_image = document.querySelector(".menu-page#interlude-image");
+const menu_page_background_video = document.querySelector(".menu-page#background-video");
 // !SECTION
 // !SECTION
 
@@ -127,7 +130,7 @@ let stored_data = {};
         
         if (req[0] === "image") {
             if (req[1] === "login-bg1.jpg") {
-                main_login_page.style.backgroundImage = `url(${file_url})`;
+                //main_login_page.style.backgroundImage = `url(${file_url})`;
             } else if (req[1] === "logo-inverted.png") {
                 loading_page_loading_logo.style.backgroundImage = `url(${file_url})`;
             } else if (req[2] === "Shittim_Chest_2.webp") {
@@ -138,6 +141,16 @@ let stored_data = {};
                 const style_element = document.createElement("style");
                 style_element.innerHTML = `@font-face {font-family: "noto-sans"; src: url("${file_url}") format("truetype")}`;
                 document.head.append(style_element);
+            }
+        } else if (req[0] === "video") {
+            if (req[1] === "login-page") {
+                if (req[2] === "background.mp4") {
+                    login_page_background_video.setAttribute("src", `${file_url}`);
+                }
+            } else if (req[1] === "menu-page") {
+                if (req[2] === "background.mp4") {
+                    menu_page_background_video.setAttribute("src", `${file_url}`);
+                }
             }
         } else {
             stored_data[req.join('/')] = file_url;
@@ -159,6 +172,9 @@ let stored_data = {};
         ["audio", "BA-Sound-Effects", "SE_Confirm_02.wav"],
         ["audio", "BA-Sound-Effects", "SE_Booting_01.wav"],
         ["image", "menu-page", "Shittim_Chest_2.webp"],
+        ["video", "login-page", "background.mp4"],
+        ["video", "menu-page", "background.mp4"],
+        ["audio", "BA-OST", "Daily_Routine_24_7.mp3"],
     ];
     let completed_req = 0;
 
@@ -177,7 +193,7 @@ let stored_data = {};
             picker(req, blob);
         })
         .catch(err => {
-            console.error(err)
+            console.error(`Error fetching ${req} with error: ${err}`)
         });
     });
 
@@ -369,6 +385,12 @@ let LoginPage = function() {
             await wait(300);
 
             main_login_page.remove();
+
+            await wait(2000);
+            menu_page_background_video.style.opacity = '1';
+            menu_page_background_video.play();
+            menu_page.play_background_music();
+            menu_page.navbar.style.marginTop = "0";
             return;
         }
 
@@ -495,3 +517,23 @@ loading_page_init_particle(50);
 
 window.addEventListener("resize", loading_page_canvas_resize)
 // !SECTION
+
+// SECTION Menu Page
+let menu_page = {
+    // Elements
+    navbar: document.querySelector(".menu-page#navbar"),
+
+    // Variables
+    background_music: null,
+
+    // Functions
+    play_background_music: (music = null) => {
+        if (!music) {
+            menu_page.background_music = new Audio(stored_data["audio/BA-OST/Daily_Routine_24_7.mp3"])
+        }
+
+        menu_page.background_music.loop = true;
+        menu_page.background_music.play()
+    },
+};
+})()

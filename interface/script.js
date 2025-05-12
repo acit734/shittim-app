@@ -163,6 +163,7 @@ let stored_data = {};
     }
 
     const data_req = [
+        ["video", "menu-page", "background.mp4"],
         ["image", "logo-inverted.png"],
         ["font", "Noto-Sans.ttf"],
         ["image", "login-bg1.jpg"],
@@ -173,7 +174,6 @@ let stored_data = {};
         ["audio", "BA-Sound-Effects", "SE_Booting_01.wav"],
         ["image", "menu-page", "Shittim_Chest_2.webp"],
         ["video", "login-page", "background.mp4"],
-        ["video", "menu-page", "background.mp4"],
         ["audio", "BA-OST", "Daily_Routine_24_7.mp3"],
     ];
     let completed_req = 0;
@@ -391,6 +391,7 @@ let LoginPage = function() {
             menu_page_background_video.play();
             menu_page.play_background_music();
             menu_page.navbar.style.marginTop = "0";
+            menu_page.selection_container.style.transform = "translateX(0)";
             return;
         }
 
@@ -522,9 +523,15 @@ window.addEventListener("resize", loading_page_canvas_resize)
 let menu_page = {
     // Elements
     navbar: document.querySelector(".menu-page#navbar"),
+    selection_container: document.querySelector(".menu-page#selection-container"),
+    music_sound_toggle: document.querySelector(".menu-page#music-sound-toggle"),
+    svg_volume_high: document.querySelector(".menu-page#svg-volume-high"),
+    svg_volume_xmark: document.querySelector(".menu-page#svg-volume-xmark"),
+    date: document.querySelector(".menu-page#date"),
 
     // Variables
     background_music: null,
+    months: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"],
 
     // Functions
     play_background_music: (music = null) => {
@@ -535,5 +542,31 @@ let menu_page = {
         menu_page.background_music.loop = true;
         menu_page.background_music.play()
     },
+    music_sound_toggle_turn: () => {
+        if (menu_page.background_music.volume === 1) {
+            menu_page.background_music.volume = 0;
+            menu_page.svg_volume_high.style.transform = "translateY(-30px)";
+            menu_page.svg_volume_xmark.style.transform = "translateY(0)";
+        } else if (menu_page.background_music.volume === 0) {
+            menu_page.background_music.volume = 1;
+            menu_page.svg_volume_high.style.transform = "translateY(0)";
+            menu_page.svg_volume_xmark.style.transform = "translateY(30px)";
+        }
+    },
+    set_date: () => {
+        const day = new Date().getDate();
+        const month = menu_page.months[new Date().getMonth()];
+        const year = new Date().getFullYear();
+
+        menu_page.date.textContent = `${day} ${month} ${year}`;
+    },
+
+    //Init
+    init: () => {
+        menu_page.music_sound_toggle.addEventListener("click", menu_page.music_sound_toggle_turn);
+
+        menu_page.set_date();
+    }
 };
+menu_page.init();
 })()

@@ -20,6 +20,10 @@ const __assets = path.join(__interface, "assets");
 
 const mime = JSON.parse(fs.readFileSync(path.join(__dirname, "data", "misc", "mime.json")));
 
+if (!fs.existsSync(path.join(__dirname, "userData_cache"))) {
+    fs.mkdirSync(path.join(__dirname, "userData_cache"))
+}
+app.setPath("userData", path.join(__dirname, "userData_cache"))
 app.whenReady().then(() => {
     const win = new BrowserWindow({
         icon: path.join(__assets, "icon.ico"),
@@ -41,15 +45,15 @@ app.whenReady().then(() => {
         if (req.method === "POST" && req.url === "/req-asset") {
             req.on("end", () => {
                 body = JSON.parse(body);
-
+                
                 const file_path = path.join(__assets, ...body);
-                const file_buffer = fs.readFileSync(file_path);
+                const file_buffer = fs.createReadStream(file_path);
                 const file_mime = mime[path.parse(file_path).ext.split('.')[1]];
 
                 res.writeHead(200, {
-                    "Content-type": file_mime
+                    "Content-type": file_mime,
                 });
-                res.end(file_buffer)
+                file_buffer.pipe(res);
             })
         } else if (req.method === "POST" && req.url === "/login-page") {
             req.on("end", () => {

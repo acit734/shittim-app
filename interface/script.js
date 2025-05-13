@@ -3,10 +3,6 @@ function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// SECTION: Module load
-const { ipcRenderer } = require("electron");
-// !SECTION
-
 // SECTION: Class Declaration
 class loading_page_particle {
     constructor(x, y, size, color, angle, alpha) {
@@ -307,6 +303,7 @@ let LoginPage = function() {
             .then(data => {
                 if (data.respond) {
                     login_page_open_verif_box();
+                    menu_page.username.textContent = login_page_inputted_value.user;
                 } else {
                     if (data.why === "user") {
                         new Audio(stored_data["audio/Arona-Voicelines/login-page-wrong-user.wav"]).play();
@@ -528,6 +525,8 @@ let menu_page = {
     svg_volume_high: document.querySelector(".menu-page#svg-volume-high"),
     svg_volume_xmark: document.querySelector(".menu-page#svg-volume-xmark"),
     date: document.querySelector(".menu-page#date"),
+    time: document.querySelector(".menu-page#time"),
+    username: document.querySelector(".menu-page#username"),
 
     // Variables
     background_music: null,
@@ -553,19 +552,29 @@ let menu_page = {
             menu_page.svg_volume_xmark.style.transform = "translateY(30px)";
         }
     },
-    set_date: () => {
-        const day = new Date().getDate();
-        const month = menu_page.months[new Date().getMonth()];
-        const year = new Date().getFullYear();
+    set_time_and_date: () => {
+        const pad = num => String(num).padStart(2, '0')
+        const now = new Date();
 
-        menu_page.date.textContent = `${day} ${month} ${year}`;
+        const day = now.getDate();
+        const month = menu_page.months[now.getMonth()];
+        const year = now.getFullYear();
+
+        const hour = pad(now.getHours());
+        const minute = pad(now.getMinutes());
+        const second = pad (now.getSeconds());
+
+        if (menu_page.date.textContent === null || parseInt(menu_page.date.textContent.split(' ')[0]) !== day) menu_page.date.textContent = `${day} ${month} ${year}`;
+        if (menu_page.time.textContent === null || parseInt(menu_page.time.textContent.split(':')[2]) !== second) menu_page.time.textContent = `${hour}:${minute}:${second}`;
     },
 
     //Init
     init: () => {
         menu_page.music_sound_toggle.addEventListener("click", menu_page.music_sound_toggle_turn);
 
-        menu_page.set_date();
+        setInterval(() => {
+            menu_page.set_time_and_date();
+        }, 1000)
     }
 };
 menu_page.init();

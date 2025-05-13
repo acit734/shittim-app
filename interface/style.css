@@ -394,10 +394,19 @@ body {
     transform: skewX(10deg) skewY(-40deg);
 }
 
-.menu-page#date {
+.menu-page#date, .menu-page#time {
     position: relative;
     color: rgb(82, 83, 90);
     font-weight: 600;
     font-size: 15px;
+}
+
+.menu-page#username {
+    position: absolute;
+    font-size: 15px;
+    font-weight: 700;
+    left: 80px;
+    border-bottom: 5px solid yellow;
+    top: 5px;
 }
 /* !SECTION */

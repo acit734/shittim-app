@@ -131,6 +131,8 @@ let stored_data = {};
                 loading_page_loading_logo.style.backgroundImage = `url(${file_url})`;
             } else if (req[2] === "Shittim_Chest_2.webp") {
                 menu_page_interlude_image.style.backgroundImage = `url(${file_url})`;
+            } else if (req[2] === "BG_ComputerCenter.jpg") {
+                menu_page.selection_object_application.style.backgroundImage = `url(${file_url})`;
             }
         } else if (req[0] === "font") {
             if (req[1] === "Noto-Sans.ttf") {
@@ -171,6 +173,7 @@ let stored_data = {};
         ["image", "menu-page", "Shittim_Chest_2.webp"],
         ["video", "login-page", "background.mp4"],
         ["audio", "BA-OST", "Daily_Routine_24_7.mp3"],
+        ["image", "menu-page", "BG_ComputerCenter.jpg"]
     ];
     let completed_req = 0;
 
@@ -519,29 +522,23 @@ window.addEventListener("resize", loading_page_canvas_resize)
 // SECTION Menu Page
 let menu_page = {
     // Elements
-    navbar: document.querySelector(".menu-page#navbar"),
+    selection_object_application: document.querySelector(".menu-page.selection-object"),
     selection_container: document.querySelector(".menu-page#selection-container"),
     music_sound_toggle: document.querySelector(".menu-page#music-sound-toggle"),
-    svg_volume_high: document.querySelector(".menu-page#svg-volume-high"),
     svg_volume_xmark: document.querySelector(".menu-page#svg-volume-xmark"),
+    svg_volume_high: document.querySelector(".menu-page#svg-volume-high"),
+    exit_button: document.querySelector(".menu-page#exit-button"),
+    username: document.querySelector(".menu-page#username"),
+    navbar: document.querySelector(".menu-page#navbar"),
     date: document.querySelector(".menu-page#date"),
     time: document.querySelector(".menu-page#time"),
-    username: document.querySelector(".menu-page#username"),
 
     // Variables
     background_music: null,
     months: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"],
 
-    // Functions
-    play_background_music: (music = null) => {
-        if (!music) {
-            menu_page.background_music = new Audio(stored_data["audio/BA-OST/Daily_Routine_24_7.mp3"])
-        }
-
-        menu_page.background_music.loop = true;
-        menu_page.background_music.play()
-    },
-    music_sound_toggle_turn: () => {
+    // Functions: For Event Listener
+    music_sound_toggle_click: () => {
         if (menu_page.background_music.volume === 1) {
             menu_page.background_music.volume = 0;
             menu_page.svg_volume_high.style.transform = "translateY(-30px)";
@@ -551,6 +548,19 @@ let menu_page = {
             menu_page.svg_volume_high.style.transform = "translateY(0)";
             menu_page.svg_volume_xmark.style.transform = "translateY(30px)";
         }
+    },
+    exit_button_click: () => {
+        window.close();
+    },
+
+    // Functions: General
+    play_background_music: (music = null) => {
+        if (!music) {
+            menu_page.background_music = new Audio(stored_data["audio/BA-OST/Daily_Routine_24_7.mp3"])
+        }
+
+        menu_page.background_music.loop = true;
+        menu_page.background_music.play()
     },
     set_time_and_date: () => {
         const pad = num => String(num).padStart(2, '0')
@@ -569,13 +579,14 @@ let menu_page = {
     },
 
     //Init
-    init: () => {
-        menu_page.music_sound_toggle.addEventListener("click", menu_page.music_sound_toggle_turn);
+    _init: () => {
+        menu_page.music_sound_toggle.addEventListener("click", menu_page.music_sound_toggle_click);
+        menu_page.exit_button.addEventListener("click", menu_page.exit_button_click);
 
         setInterval(() => {
             menu_page.set_time_and_date();
         }, 1000)
     }
 };
-menu_page.init();
+menu_page._init();
 })()

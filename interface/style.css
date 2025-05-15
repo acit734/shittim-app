@@ -336,6 +336,7 @@ body {
     justify-content: center;
     top: 10px;
     left: 20px;
+    cursor: pointer;
 }
 
 .menu-page#selection-container {
@@ -348,15 +349,6 @@ body {
     padding: 10px;
     transform: translateX(100%);
     transition: transform 0.3s ease;
-}
-
-.menu-page.selection-object#application {
-    width: 90%;
-    height: 80px;
-    background-color: black;
-    transform: skewX(-10deg);
-    border-radius: 5px;
-    border: 2px solid rgb(192, 205, 207);
 }
 
 .menu-page#music-sound-toggle {
@@ -408,5 +400,53 @@ body {
     left: 80px;
     border-bottom: 5px solid yellow;
     top: 5px;
+}
+
+.menu-page.selection-object {
+    width: 90%;
+    height: 80px;
+    border-radius: 10px;
+    border: 2px solid rgb(192, 205, 207);
+    position: relative;
+    background-color: black;
+    background-position: center;
+    background-size: cover;
+    padding-top: 6px;
+    padding-left: 15px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.menu-page.selection-object:hover {
+    transform: scale(1.01);
+    box-shadow: 0px 0px 3px white;
+}
+
+.menu-page.selection-object::before {
+    position: absolute;
+    content: "";
+    pointer-events: none;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(163deg, white 10%, transparent 40%);
+}
+
+.menu-page.selection-text {
+    font-size: 30px;
+    color: rgb(72, 100, 154);
+    -webkit-text-stroke: 0.3px white;
+    font-weight: 1000;
+    position: relative;
+}
+
+.menu-page#transition-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
 }
 /* !SECTION */

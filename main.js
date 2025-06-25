@@ -20,10 +20,6 @@ const __assets = path.join(__interface, "assets");
 
 const mime = JSON.parse(fs.readFileSync(path.join(__dirname, "data", "misc", "mime.json")));
 
-if (!fs.existsSync(path.join(__dirname, "userData_cache"))) {
-    fs.mkdirSync(path.join(__dirname, "userData_cache"))
-}
-app.setPath("userData", path.join(__dirname, "userData_cache"))
 app.whenReady().then(() => {
     const win = new BrowserWindow({
         icon: path.join(__assets, "icon.ico"),

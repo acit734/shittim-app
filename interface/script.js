@@ -522,9 +522,11 @@ window.addEventListener("resize", loading_page_canvas_resize)
 // SECTION Menu Page
 let menu_page = {
     // Elements
-    selection_object_application: document.querySelector(".menu-page.selection-object"),
+    selection_object_application: document.querySelector(".menu-page.selection-object#application"),
     selection_container: document.querySelector(".menu-page#selection-container"),
     music_sound_toggle: document.querySelector(".menu-page#music-sound-toggle"),
+    transition_canvas: document.querySelector(".menu-page#transition-canvas"),
+    transition_screen: document.querySelector(".menu-page#transition-screen"),
     svg_volume_xmark: document.querySelector(".menu-page#svg-volume-xmark"),
     svg_volume_high: document.querySelector(".menu-page#svg-volume-high"),
     exit_button: document.querySelector(".menu-page#exit-button"),
@@ -533,7 +535,41 @@ let menu_page = {
     date: document.querySelector(".menu-page#date"),
     time: document.querySelector(".menu-page#time"),
 
+    // Class
+    transition_screen_particle: class {
+        constructor(x, y, angle) {
+            this.x = x;
+            this.y = y;
+            this.size = 30;
+            this.angle = !angle ? 0 : 180;
+            this.alpha = 0;
+        }
+
+        draw() {
+            menu_page.transition_canvas_ctx.save();
+            menu_page.transition_canvas_ctx.translate(this.x, this.y)
+            menu_page.transition_canvas_ctx.rotate(this.angle * Math.PI / 180);
+
+            menu_page.transition_canvas_ctx.beginPath();
+            menu_page.transition_canvas_ctx.moveTo(0, -this.size);
+            menu_page.transition_canvas_ctx.lineTo(-this.size, this.size);
+            menu_page.transition_canvas_ctx.lineTo(this.size, this.size);
+            menu_page.transition_canvas_ctx.closePath();
+
+            menu_page.transition_canvas_ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+            menu_page.transition_canvas_ctx.fill();
+
+            menu_page.transition_canvas_ctx.restore();
+        }
+
+        alpha_up() {
+            menu_page.transition_canvas_ctx.clearRect(0, 0, menu_page.transition_canvas_ctx.width, menu_page.transition_canvas_ctx.height);
+            
+        }
+    },
+
     // Variables
+    transition_canvas_ctx: null,
     background_music: null,
     months: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"],
 
@@ -552,13 +588,42 @@ let menu_page = {
     exit_button_click: () => {
         window.close();
     },
+    selection_object_click: () => {
+        menu_page.transition_screen.style.pointerEvents = "auto";
+
+        const half_width = menu_page.transition_canvas.width / 2;
+        const half_height = menu_page.transition_canvas.height / 2;
+        let particle_generator = [];
+        let flip = false;
+
+        for (let i = half_width - 30; i > -30; i -= 60) {
+            const triangle_particle_up = function() {
+                const x = i;
+                const y = half_height - 30;
+                const angle = flip;
+                let particles = [];
+
+                particles.push(new menu_page.transition_screen_particle(x, y, angle));
+
+
+            }
+            particle_generator.push(triangle_particle_up);
+            flip = !flip;
+        }
+        console.log(particle_generator)
+    },
+    window_resize: () => {
+        menu_page.transition_canvas.width = window.innerWidth;
+        menu_page.transition_canvas.height = window.innerHeight;
+    },
 
     // Functions: General
     play_background_music: (music = null) => {
         if (!music) {
-            menu_page.background_music = new Audio(stored_data["audio/BA-OST/Daily_Routine_24_7.mp3"])
+            music = new Audio(stored_data["audio/BA-OST/Daily_Routine_24_7.mp3"])
         }
 
+        menu_page.background_music = music
         menu_page.background_music.loop = true;
         menu_page.background_music.play()
     },
@@ -579,13 +644,23 @@ let menu_page = {
     },
 
     //Init
-    _init: () => {
+    _init: async () => {
+        [...menu_page.selection_container.children].forEach(child => {
+            child.addEventListener("click", menu_page.selection_object_click);
+        });
+        
         menu_page.music_sound_toggle.addEventListener("click", menu_page.music_sound_toggle_click);
         menu_page.exit_button.addEventListener("click", menu_page.exit_button_click);
+        window.addEventListener("resize", menu_page.window_resize);
 
         setInterval(() => {
             menu_page.set_time_and_date();
-        }, 1000)
+        }, 1000);
+
+        menu_page.transition_canvas.width = window.innerWidth;
+        menu_page.transition_canvas.height = window.innerHeight;
+
+        menu_page.transition_canvas_ctx = menu_page.transition_canvas.getContext("2d");
     }
 };
 menu_page._init();

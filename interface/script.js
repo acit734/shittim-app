@@ -540,9 +540,14 @@ let menu_page = {
         constructor(x, y, angle) {
             this.x = x;
             this.y = y;
-            this.size = 30;
+            this.size = 0;
             this.angle = !angle ? 0 : 180;
             this.alpha = 0;
+            this.start = performance.now();
+            this.end_came_in = this.start + 500;
+            this.end_stand_by = this.end_came_in + 4000;
+            this.end_came_out = this.end_stand_by + 500;
+            this.finish = false;
         }
 
         draw() {
@@ -562,9 +567,29 @@ let menu_page = {
             menu_page.transition_canvas_ctx.restore();
         }
 
-        alpha_up() {
-            menu_page.transition_canvas_ctx.clearRect(0, 0, menu_page.transition_canvas_ctx.width, menu_page.transition_canvas_ctx.height);
-            
+        transitions() {
+            const now = performance.now();
+            let alpha;
+            let size;
+            if (now <= this.end_came_in) {
+                alpha = (now - this.start) / 500;
+                size = 20 + (12 * alpha);
+                this.alpha = alpha;
+                this.size = size;
+                this.draw();
+            } else if (now > this.end_came_in && now <= this.end_stand_by) {
+                this.alpha = 1;
+                this.size = 32;
+                this.draw();
+            } else if (now > this.end_stand_by && now <= this.end_came_out) {
+                alpha = 1 - ((now - this.end_stand_by) / 500)
+                size = 20 + (12 * alpha);
+                this.alpha = alpha;
+                this.size = size;
+                this.draw();
+            } else if (now > this.end_came_out) {
+                this.finish = true;
+            }
         }
     },
 
@@ -588,29 +613,10 @@ let menu_page = {
     exit_button_click: () => {
         window.close();
     },
-    selection_object_click: () => {
-        menu_page.transition_screen.style.pointerEvents = "auto";
+    selection_object_click: async () => {
+        menu_page.generate_transition_from_particle();
 
-        const half_width = menu_page.transition_canvas.width / 2;
-        const half_height = menu_page.transition_canvas.height / 2;
-        let particle_generator = [];
-        let flip = false;
-
-        for (let i = half_width - 30; i > -30; i -= 60) {
-            const triangle_particle_up = function() {
-                const x = i;
-                const y = half_height - 30;
-                const angle = flip;
-                let particles = [];
-
-                particles.push(new menu_page.transition_screen_particle(x, y, angle));
-
-
-            }
-            particle_generator.push(triangle_particle_up);
-            flip = !flip;
-        }
-        console.log(particle_generator)
+        
     },
     window_resize: () => {
         menu_page.transition_canvas.width = window.innerWidth;
@@ -641,6 +647,83 @@ let menu_page = {
 
         if (menu_page.date.textContent === null || parseInt(menu_page.date.textContent.split(' ')[0]) !== day) menu_page.date.textContent = `${day} ${month} ${year}`;
         if (menu_page.time.textContent === null || parseInt(menu_page.time.textContent.split(':')[2]) !== second) menu_page.time.textContent = `${hour}:${minute}:${second}`;
+    },
+    generate_transition_from_particle: () => {
+        menu_page.window_resize();
+        menu_page.transition_screen.style.pointerEvents = "auto";
+
+        const half_width = menu_page.transition_canvas.width / 2;
+        const half_height = menu_page.transition_canvas.height / 2;
+        const canvas = menu_page.transition_canvas;
+        const ctx = menu_page.transition_canvas_ctx;
+        let particle_generator = {
+            top: [],
+            bottom: [],
+        };
+        let particles = [];
+        let selisih = 0;
+        let flip = true;
+        let animation_id;
+
+        function animate_particles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            Promise.all(particles.map(async (particle) => {
+                particle.transitions();
+            }));
+
+            particles.filter(particle => !particle.finish)
+            if (particles.length === 0) {
+                cancelAnimationFrame(animation_id);
+                return;
+            }
+            requestAnimationFrame(animate_particles);
+        }
+        function push_generator(x_base, y_base, flip, direction) {
+            const particle_function = async (y_param = y_base) => {
+                    if (y_param <= -30) return;
+                    const x = x_base;
+                    const y = y_param;
+                    const angle = flip;
+
+                    particles.push(new menu_page.transition_screen_particle(x, y, angle))
+
+                    await wait(100);
+
+                    particle_function(direction ? y - 60 : y + 60);
+                }
+
+                particle_generator.top.push(particle_function);
+        }
+        function create_generator(y_sect, direction) {
+            while (selisih < half_width + 30) {
+                let x_base1;
+                let x_base2;
+                let y_base = y_sect;
+
+                if (selisih === 0) {
+                    x_base1 = half_width;
+                    push_generator(x_base1, y_base, flip, direction);
+                } else {
+                    x_base1 = half_width - selisih;
+                    x_base2 = half_width + selisih;
+                    push_generator(x_base1, y_base, flip, direction);
+                    push_generator(x_base2, y_base, flip, direction);
+                }
+
+                selisih += 30;
+                flip = !flip;
+            }
+
+            selisih = 0;
+            flip = true;
+        }
+
+        create_generator(half_height - 30, true);
+        create_generator(half_height + 30, false);
+
+        Promise.all(particle_generator.top.map(fn => fn()));
+        animation_id = requestAnimationFrame(animate_particles);
     },
 
     //Init

@@ -115,65 +115,51 @@ const loading_page_progress_bar = document.querySelector(".loading-page#progress
 const main_menu_page = document.querySelector(".main#menu-page");
 const menu_page_interlude_image = document.querySelector(".menu-page#interlude-image");
 const menu_page_background_video = document.querySelector(".menu-page#background-video");
+const menu_page_transition_logo = document.querySelector(".menu-page#transition-logo");
 // !SECTION
 // !SECTION
 
 // SECTION: Asset load
 let stored_data = {};
 (() => {
-    function picker(req, blob) {
-        const file_url = URL.createObjectURL(blob);
-        
-        if (req[0] === "image") {
-            if (req[1] === "login-bg1.jpg") {
-                //main_login_page.style.backgroundImage = `url(${file_url})`;
-            } else if (req[1] === "logo-inverted.png") {
-                loading_page_loading_logo.style.backgroundImage = `url(${file_url})`;
-            } else if (req[2] === "Shittim_Chest_2.webp") {
-                menu_page_interlude_image.style.backgroundImage = `url(${file_url})`;
-            } else if (req[2] === "BG_ComputerCenter.jpg") {
-                menu_page.selection_object_application.style.backgroundImage = `url(${file_url})`;
-            }
-        } else if (req[0] === "font") {
-            if (req[1] === "Noto-Sans.ttf") {
-                const style_element = document.createElement("style");
-                style_element.innerHTML = `@font-face {font-family: "noto-sans"; src: url("${file_url}") format("truetype")}`;
-                document.head.append(style_element);
-            }
-        } else if (req[0] === "video") {
-            if (req[1] === "login-page") {
-                if (req[2] === "background.mp4") {
-                    login_page_background_video.setAttribute("src", `${file_url}`);
-                }
-            } else if (req[1] === "menu-page") {
-                if (req[2] === "background.mp4") {
-                    menu_page_background_video.setAttribute("src", `${file_url}`);
-                }
-            }
-        } else {
-            stored_data[req.join('/')] = file_url;
-        }
-    }
     function update_progress() {
         const progress = ((completed_req / data_req.length) * 100).toFixed(0);
         loading_page_progress_bar.style.width = `${progress}%`;
         loading_page_progress_percentage.textContent = `${progress}%`
     }
+    function store(obj, link) {
+        stored_data[obj] = link;
+    }
 
     const data_req = [
-        ["video", "menu-page", "background.mp4"],
-        ["image", "logo-inverted.png"],
-        ["font", "Noto-Sans.ttf"],
-        ["image", "login-bg1.jpg"],
-        ["audio", "Arona-Voicelines", "login-page-wrong-user.wav"],
-        ["audio", "Arona-Voicelines", "login-page-wrong-pass.wav"],
-        ["audio", "Arona-Voicelines", "login-page-auth-success.wav"],
-        ["audio", "BA-Sound-Effects", "SE_Confirm_02.wav"],
-        ["audio", "BA-Sound-Effects", "SE_Booting_01.wav"],
-        ["image", "menu-page", "Shittim_Chest_2.webp"],
-        ["video", "login-page", "background.mp4"],
-        ["audio", "BA-OST", "Daily_Routine_24_7.mp3"],
-        ["image", "menu-page", "BG_ComputerCenter.jpg"]
+        ["video/menu-page/background.mp4", (obj) => {
+            menu_page_background_video.setAttribute("src", `${obj}`);
+        }],
+        ["image/logo-inverted.png", (obj) => {
+            loading_page_loading_logo.style.backgroundImage = `url(${obj})`;
+            menu_page_transition_logo.style.backgroundImage = `url(${obj})`;
+        }],
+        ["font/Noto-Sans.ttf", (obj) => {
+            const style_element = document.createElement("style");
+            style_element.innerHTML = `@font-face {font-family: "noto-sans"; src: url("${obj}") format("truetype")}`;
+            document.head.append(style_element);
+        }],
+        ["image/login-bg1.jpg"],
+        ["audio/Arona-Voicelines/login-page-wrong-user.wav"],
+        ["audio/Arona-Voicelines/login-page-wrong-pass.wav"],
+        ["audio/Arona-Voicelines/login-page-auth-success.wav"],
+        ["audio/BA-Sound-Effects/SE_Confirm_02.wav"],
+        ["audio/BA-Sound-Effects/SE_Booting_01.wav"],
+        ["image/menu-page/Shittim_Chest_2.webp", (obj) => {
+            menu_page_interlude_image.style.backgroundImage = `url(${obj})`;
+        }],
+        ["video/login-page/background.mp4", (obj) => {
+            login_page_background_video.setAttribute("src", `${obj}`);
+        }],
+        ["audio/BA-OST/Daily_Routine_24_7.mp3"],
+        ["image/menu-page/BG_ComputerCenter.jpg", (obj) => {
+            menu_page.selection_object_application.style.backgroundImage = `url(${obj})`;
+        }]
     ];
     let completed_req = 0;
 
@@ -183,13 +169,16 @@ let stored_data = {};
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(req)
+            body: JSON.stringify(req[0])
         })
         .then(response => response.blob())
         .then(blob => {
+            const file_url = URL.createObjectURL(blob);
+
             completed_req++;
             update_progress(completed_req);
-            picker(req, blob);
+            if (req[1]) req[1](file_url);
+            else store(req[0], file_url);
         })
         .catch(err => {
             console.error(`Error fetching ${req} with error: ${err}`)
@@ -528,6 +517,8 @@ let menu_page = {
     transition_canvas: document.querySelector(".menu-page#transition-canvas"),
     transition_screen: document.querySelector(".menu-page#transition-screen"),
     svg_volume_xmark: document.querySelector(".menu-page#svg-volume-xmark"),
+    transition_logo: document.querySelector(".menu-page#transition-logo"),
+    transition_text: document.querySelector(".menu-page#transition-text"),
     svg_volume_high: document.querySelector(".menu-page#svg-volume-high"),
     exit_button: document.querySelector(".menu-page#exit-button"),
     username: document.querySelector(".menu-page#username"),
@@ -600,11 +591,22 @@ let menu_page = {
 
     // Functions: For Event Listener
     music_sound_toggle_click: () => {
+        function updateToggle(condition) {
+            fetch("http://localhost:3000/menu-page/background-music-toggle/", {
+                method: "POST",
+                headers: {
+                    "Content-Type" : "application/json"
+                },
+                body: JSON.stringify({ purpose: "post", state: condition })
+            })
+        }
         if (menu_page.background_music.volume === 1) {
+            updateToggle(false)
             menu_page.background_music.volume = 0;
             menu_page.svg_volume_high.style.transform = "translateY(-30px)";
             menu_page.svg_volume_xmark.style.transform = "translateY(0)";
         } else if (menu_page.background_music.volume === 0) {
+            updateToggle(true);
             menu_page.background_music.volume = 1;
             menu_page.svg_volume_high.style.transform = "translateY(0)";
             menu_page.svg_volume_xmark.style.transform = "translateY(30px)";
@@ -613,10 +615,9 @@ let menu_page = {
     exit_button_click: () => {
         window.close();
     },
-    selection_object_click: async () => {
+    selection_object_click: function() {
         menu_page.generate_transition_from_particle();
-
-        
+        menu_page.display_transition_motive(this);
     },
     window_resize: () => {
         menu_page.transition_canvas.width = window.innerWidth;
@@ -631,7 +632,22 @@ let menu_page = {
 
         menu_page.background_music = music
         menu_page.background_music.loop = true;
-        menu_page.background_music.play()
+        fetch("http://localhost:3000/menu-page/background-music-toggle/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ purpose: "get" })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.toggle) {
+                menu_page.background_music.volume = 0;
+                menu_page.svg_volume_high.style.transform = "translateY(-30px)";
+                menu_page.svg_volume_xmark.style.transform = "translateY(0)";
+            }
+        });
+        menu_page.background_music.play();
     },
     set_time_and_date: () => {
         const pad = num => String(num).padStart(2, '0')
@@ -724,6 +740,28 @@ let menu_page = {
 
         Promise.all(particle_generator.top.map(fn => fn()));
         animation_id = requestAnimationFrame(animate_particles);
+    },
+    display_transition_motive: async (selection) => {
+        const transition_text = menu_page.transition_text;
+        const transition_logo = menu_page.transition_logo;
+
+        const motive = selection.querySelector(".menu-page.selection-text").textContent;
+        transition_text.textContent = motive;
+        await wait(500);
+
+        transition_logo.style.opacity = '1';
+
+        await wait(750);
+
+        transition_logo.style.opacity = '0';
+
+        await wait(500);
+
+        transition_text.style.opacity = '1';
+
+        await wait (2250);
+
+        transition_text.style.opacity = '0';
     },
 
     //Init

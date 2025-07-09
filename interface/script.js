@@ -1,10 +1,7 @@
+document.addEventListener("DOMContentLoaded", () => {
 function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-
-// SECTION: Module load
-const { ipcRenderer } = require("electron");
-// !SECTION
 
 // SECTION: Class Declaration
 class loading_page_particle {
@@ -91,6 +88,7 @@ class loading_page_particle {
 // SECTION: Login Page
 const main_login_page = document.querySelector(".main#login-page");
 const login_page_login_form_container = document.querySelector(".login-page#login-form-container");
+const login_page_background_video = document.querySelector(".login-page#background-video");
 const login_page_username_input = document.querySelector(".login-page#username-input");
 const login_page_password_input = document.querySelector(".login-page#password-input");
 const login_page_scanner_canvas = document.querySelector(".login-page#scanner-canvas");
@@ -114,51 +112,53 @@ const loading_page_loading_logo = document.querySelector(".loading-page#loading-
 const loading_page_progress_bar = document.querySelector(".loading-page#progress-bar");
 // !SECTION
 // SECTION Menu Page
-const main_menu_page = document.querySelector(".main#menu-page");
 const menu_page_interlude_image = document.querySelector(".menu-page#interlude-image");
+const menu_page_background_video = document.querySelector(".menu-page#background-video");
+const menu_page_transition_logo = document.querySelector(".menu-page#transition-logo");
 // !SECTION
 // !SECTION
 
 // SECTION: Asset load
 let stored_data = {};
 (() => {
-    function picker(req, blob) {
-        const file_url = URL.createObjectURL(blob);
-        
-        if (req[0] === "image") {
-            if (req[1] === "login-bg1.jpg") {
-                main_login_page.style.backgroundImage = `url(${file_url})`;
-            } else if (req[1] === "logo-inverted.png") {
-                loading_page_loading_logo.style.backgroundImage = `url(${file_url})`;
-            } else if (req[2] === "Shittim_Chest_2.webp") {
-                menu_page_interlude_image.style.backgroundImage = `url(${file_url})`;
-            }
-        } else if (req[0] === "font") {
-            if (req[1] === "Noto-Sans.ttf") {
-                const style_element = document.createElement("style");
-                style_element.innerHTML = `@font-face {font-family: "noto-sans"; src: url("${file_url}") format("truetype")}`;
-                document.head.append(style_element);
-            }
-        } else {
-            stored_data[req.join('/')] = file_url;
-        }
-    }
     function update_progress() {
         const progress = ((completed_req / data_req.length) * 100).toFixed(0);
         loading_page_progress_bar.style.width = `${progress}%`;
         loading_page_progress_percentage.textContent = `${progress}%`
     }
+    function store(obj, link) {
+        stored_data[obj] = link;
+    }
 
     const data_req = [
-        ["image", "logo-inverted.png"],
-        ["font", "Noto-Sans.ttf"],
-        ["image", "login-bg1.jpg"],
-        ["audio", "Arona-Voicelines", "login-page-wrong-user.wav"],
-        ["audio", "Arona-Voicelines", "login-page-wrong-pass.wav"],
-        ["audio", "Arona-Voicelines", "login-page-auth-success.wav"],
-        ["audio", "BA-Sound-Effects", "SE_Confirm_02.wav"],
-        ["audio", "BA-Sound-Effects", "SE_Booting_01.wav"],
-        ["image", "menu-page", "Shittim_Chest_2.webp"],
+        ["video/menu-page/background.mp4", (obj) => {
+            menu_page_background_video.setAttribute("src", `${obj}`);
+        }],
+        ["image/logo-inverted.png", (obj) => {
+            loading_page_loading_logo.style.backgroundImage = `url(${obj})`;
+            menu_page_transition_logo.style.backgroundImage = `url(${obj})`;
+        }],
+        ["font/Noto-Sans.ttf", (obj) => {
+            const style_element = document.createElement("style");
+            style_element.innerHTML = `@font-face {font-family: "noto-sans"; src: url("${obj}") format("truetype")}`;
+            document.head.append(style_element);
+        }],
+        ["image/login-bg1.jpg"],
+        ["audio/Arona-Voicelines/login-page-wrong-user.wav"],
+        ["audio/Arona-Voicelines/login-page-wrong-pass.wav"],
+        ["audio/Arona-Voicelines/login-page-auth-success.wav"],
+        ["audio/BA-Sound-Effects/SE_Confirm_02.wav"],
+        ["audio/BA-Sound-Effects/SE_Booting_01.wav"],
+        ["image/menu-page/Shittim_Chest_2.webp", (obj) => {
+            menu_page_interlude_image.style.backgroundImage = `url(${obj})`;
+        }],
+        ["video/login-page/background.mp4", (obj) => {
+            login_page_background_video.setAttribute("src", `${obj}`);
+        }],
+        ["audio/BA-OST/Daily_Routine_24_7.mp3"],
+        ["image/menu-page/BG_ComputerCenter.jpg", (obj) => {
+            menu_page.selection_object_application.style.backgroundImage = `url(${obj})`;
+        }]
     ];
     let completed_req = 0;
 
@@ -168,16 +168,19 @@ let stored_data = {};
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(req)
+            body: JSON.stringify(req[0])
         })
         .then(response => response.blob())
         .then(blob => {
+            const file_url = URL.createObjectURL(blob);
+
             completed_req++;
             update_progress(completed_req);
-            picker(req, blob);
+            if (req[1]) req[1](file_url);
+            else store(req[0], file_url);
         })
         .catch(err => {
-            console.error(err)
+            console.error(`Error fetching ${req} with error: ${err}`)
         });
     });
 
@@ -291,6 +294,7 @@ let LoginPage = function() {
             .then(data => {
                 if (data.respond) {
                     login_page_open_verif_box();
+                    menu_page.username.textContent = login_page_inputted_value.user;
                 } else {
                     if (data.why === "user") {
                         new Audio(stored_data["audio/Arona-Voicelines/login-page-wrong-user.wav"]).play();
@@ -369,6 +373,13 @@ let LoginPage = function() {
             await wait(300);
 
             main_login_page.remove();
+
+            await wait(2000);
+            menu_page_background_video.style.opacity = '1';
+            menu_page_background_video.play();
+            menu_page.play_background_music();
+            menu_page.navbar.style.marginTop = "0";
+            menu_page.selection_container.style.transform = "translateX(0)";
             return;
         }
 
@@ -495,3 +506,303 @@ loading_page_init_particle(50);
 
 window.addEventListener("resize", loading_page_canvas_resize)
 // !SECTION
+
+// SECTION Menu Page
+let menu_page = {
+    // Elements
+    main : document.querySelector(".main#menu-page"),
+    selection_object_application: document.querySelector(".menu-page.selection-object#application"),
+    selection_container: document.querySelector(".menu-page#selection-container"),
+    music_sound_toggle: document.querySelector(".menu-page#music-sound-toggle"),
+    transition_canvas: document.querySelector(".menu-page#transition-canvas"),
+    transition_screen: document.querySelector(".menu-page#transition-screen"),
+    svg_volume_xmark: document.querySelector(".menu-page#svg-volume-xmark"),
+    transition_logo: document.querySelector(".menu-page#transition-logo"),
+    transition_text: document.querySelector(".menu-page#transition-text"),
+    svg_volume_high: document.querySelector(".menu-page#svg-volume-high"),
+    exit_button: document.querySelector(".menu-page#exit-button"),
+    username: document.querySelector(".menu-page#username"),
+    navbar: document.querySelector(".menu-page#navbar"),
+    date: document.querySelector(".menu-page#date"),
+    time: document.querySelector(".menu-page#time"),
+
+    // Class
+    transition_screen_particle: class {
+        constructor(x, y, angle, duration) {
+            this.x = x;
+            this.y = y;
+            this.size = 0;
+            this.angle = !angle ? 0 : 180;
+            this.alpha = 0;
+            this.start = performance.now();
+            this.end_came_in = this.start + 500;
+            this.end_stand_by = this.end_came_in + duration;
+            this.end_came_out = this.end_stand_by + 500;
+            this.finish = false;
+        }
+
+        draw() {
+            menu_page.transition_canvas_ctx.save();
+            menu_page.transition_canvas_ctx.translate(this.x, this.y)
+            menu_page.transition_canvas_ctx.rotate(this.angle * Math.PI / 180);
+
+            menu_page.transition_canvas_ctx.beginPath();
+            menu_page.transition_canvas_ctx.moveTo(0, -this.size);
+            menu_page.transition_canvas_ctx.lineTo(-this.size, this.size);
+            menu_page.transition_canvas_ctx.lineTo(this.size, this.size);
+            menu_page.transition_canvas_ctx.closePath();
+
+            menu_page.transition_canvas_ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+            menu_page.transition_canvas_ctx.fill();
+
+            menu_page.transition_canvas_ctx.restore();
+        }
+
+        transitions() {
+            const now = performance.now();
+            let alpha;
+            let size;
+            if (now <= this.end_came_in) {
+                alpha = (now - this.start) / 500;
+                size = 20 + (12 * alpha);
+                this.alpha = alpha;
+                this.size = size;
+                this.draw();
+            } else if (now > this.end_came_in && now <= this.end_stand_by) {
+                this.alpha = 1;
+                this.size = 32;
+                this.draw();
+            } else if (now > this.end_stand_by && now <= this.end_came_out) {
+                alpha = 1 - ((now - this.end_stand_by) / 500)
+                size = 20 + (12 * alpha);
+                this.alpha = alpha;
+                this.size = size;
+                this.draw();
+            } else if (now > this.end_came_out) {
+                this.finish = true;
+            }
+        }
+    },
+
+    // Variables
+    transition_canvas_ctx: null,
+    background_music: null,
+    months: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"],
+
+    // Functions: For Event Listener
+    music_sound_toggle_click: () => {
+        function updateToggle(condition) {
+            fetch("http://localhost:3000/menu-page/background-music-toggle/", {
+                method: "POST",
+                headers: {
+                    "Content-Type" : "application/json"
+                },
+                body: JSON.stringify({ purpose: "post", state: condition })
+            })
+        }
+        if (menu_page.background_music.volume === 1) {
+            updateToggle(false)
+            menu_page.background_music.volume = 0;
+            menu_page.svg_volume_high.style.transform = "translateY(-30px)";
+            menu_page.svg_volume_xmark.style.transform = "translateY(0)";
+        } else if (menu_page.background_music.volume === 0) {
+            updateToggle(true);
+            menu_page.background_music.volume = 1;
+            menu_page.svg_volume_high.style.transform = "translateY(0)";
+            menu_page.svg_volume_xmark.style.transform = "translateY(30px)";
+        }
+    },
+    exit_button_click: () => {
+        window.close();
+    },
+    selection_object_click: function() {
+        menu_page.display_transition_destination(this);
+    },
+    window_resize: () => {
+        menu_page.transition_canvas.width = window.innerWidth;
+        menu_page.transition_canvas.height = window.innerHeight;
+    },
+
+    // Functions: General
+    play_background_music: (music = null) => {
+        if (!music) {
+            music = new Audio(stored_data["audio/BA-OST/Daily_Routine_24_7.mp3"])
+        }
+
+        menu_page.background_music = music
+        menu_page.background_music.loop = true;
+        fetch("http://localhost:3000/menu-page/background-music-toggle/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ purpose: "get" })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.toggle) {
+                menu_page.background_music.volume = 0;
+                menu_page.svg_volume_high.style.transform = "translateY(-30px)";
+                menu_page.svg_volume_xmark.style.transform = "translateY(0)";
+            }
+        });
+        menu_page.background_music.play();
+    },
+    set_time_and_date: () => {
+        const pad = num => String(num).padStart(2, '0')
+        const now = new Date();
+
+        const day = now.getDate();
+        const month = menu_page.months[now.getMonth()];
+        const year = now.getFullYear();
+
+        const hour = pad(now.getHours());
+        const minute = pad(now.getMinutes());
+        const second = pad (now.getSeconds());
+
+        if (menu_page.date.textContent === null || parseInt(menu_page.date.textContent.split(' ')[0]) !== day) menu_page.date.textContent = `${day} ${month} ${year}`;
+        if (menu_page.time.textContent === null || parseInt(menu_page.time.textContent.split(':')[2]) !== second) menu_page.time.textContent = `${hour}:${minute}:${second}`;
+    },
+    generate_transition_from_particle: () => {
+        menu_page.window_resize();
+        menu_page.transition_screen.style.pointerEvents = "auto";
+
+        const half_width = menu_page.transition_canvas.width / 2;
+        const half_height = menu_page.transition_canvas.height / 2;
+        const canvas = menu_page.transition_canvas;
+        const ctx = menu_page.transition_canvas_ctx;
+        let particle_generator = {
+            top: [],
+            bottom: [],
+        };
+        let particles = [];
+        let selisih = 0;
+        let flip = true;
+        let animation_id;
+
+        function animate_particles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            Promise.all(particles.map(async (particle) => {
+                particle.transitions();
+            }));
+
+            particles.filter(particle => !particle.finish)
+            if (particles.length === 0) {
+                cancelAnimationFrame(animation_id);
+                return;
+            }
+            requestAnimationFrame(animate_particles);
+        }
+        function push_generator(x_base, y_base, flip, direction) {
+            const duration = 4000;
+            const particle_function = async (y_param = y_base) => {
+                    if (y_param <= -30) return;
+                    const x = x_base;
+                    const y = y_param;
+                    const angle = flip;
+
+                    particles.push(new menu_page.transition_screen_particle(x, y, angle, duration))
+
+                    await wait(100);
+
+                    particle_function(direction ? y - 60 : y + 60);
+                }
+
+                particle_generator.top.push(particle_function);
+        }
+        function create_generator(y_sect, direction) {
+            while (selisih < half_width + 30) {
+                let x_base1;
+                let x_base2;
+                let y_base = y_sect;
+
+                if (selisih === 0) {
+                    x_base1 = half_width;
+                    push_generator(x_base1, y_base, flip, direction);
+                } else {
+                    x_base1 = half_width - selisih;
+                    x_base2 = half_width + selisih;
+                    push_generator(x_base1, y_base, flip, direction);
+                    push_generator(x_base2, y_base, flip, direction);
+                }
+
+                selisih += 30;
+                flip = !flip;
+            }
+
+            selisih = 0;
+            flip = true;
+        }
+
+        create_generator(half_height - 30, true);
+        create_generator(half_height + 30, false);
+
+        Promise.all(particle_generator.top.map(fn => fn()));
+        animation_id = requestAnimationFrame(animate_particles);
+    },
+    display_transition_destination: async (selection) => {
+        const application_page_main = application_page.general.main;
+        const transition_screen = menu_page.transition_screen;
+        const transition_text = menu_page.transition_text;
+        const transition_logo = menu_page.transition_logo;
+        const menu_page_main = menu_page.main;
+        const navbar = menu_page.navbar;
+
+        menu_page.generate_transition_from_particle();
+
+        const motive = selection.querySelector(".menu-page.selection-text").textContent;
+        transition_text.textContent = motive;
+        await wait(500);
+
+        transition_logo.style.opacity = '1';
+
+        await wait(750);
+
+        transition_logo.style.opacity = '0';
+
+        await wait(500);
+
+        transition_text.style.opacity = '1';
+        application_page_main.appendChild(navbar);
+        menu_page_main.style.visibility = "hidden";
+
+        await wait (2250);
+
+        transition_text.style.opacity = '0';
+
+        await wait(500);
+
+        transition_screen.style.pointerEvents = "none";
+    },
+
+    //Init
+    _init: async () => {
+        [...menu_page.selection_container.children].forEach(child => {
+            child.addEventListener("click", menu_page.selection_object_click);
+        });
+        
+        menu_page.music_sound_toggle.addEventListener("click", menu_page.music_sound_toggle_click);
+        menu_page.exit_button.addEventListener("click", menu_page.exit_button_click);
+        window.addEventListener("resize", menu_page.window_resize);
+
+        setInterval(() => {
+            menu_page.set_time_and_date();
+        }, 1000);
+
+        menu_page.transition_canvas.width = window.innerWidth;
+        menu_page.transition_canvas.height = window.innerHeight;
+
+        menu_page.transition_canvas_ctx = menu_page.transition_canvas.getContext("2d");
+    }
+};
+
+let application_page = {
+    general: {
+        main: document.querySelector(".main#application-page")
+    },
+    application_list: {}
+}
+
+menu_page._init();
+})

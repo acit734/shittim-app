@@ -12,13 +12,23 @@ const fs = require("fs");
 let music_metadata;
 
 (async () => {
-    music_metadata = await import("music-metadata")
+    music_metadata = await import("music-metadata");
 })()
 
 const __interface = path.join(__dirname, "interface");
 const __assets = path.join(__interface, "assets");
 
 const mime = JSON.parse(fs.readFileSync(path.join(__dirname, "data", "misc", "mime.json")));
+
+if (fs.readFileSync(path.join(__dirname, "data", "config.json"), "utf8") === "") {
+    const template = JSON.stringify({
+        "menuPage" : {
+            backgroundMusicToggle: true
+        }
+    });
+    
+    fs.writeFileSync(path.join(__dirname, "data", "config.json"), template);
+}
 
 app.whenReady().then(() => {
     const win = new BrowserWindow({
@@ -35,21 +45,22 @@ app.whenReady().then(() => {
     });
 
     win.loadFile(path.join(__interface, "index.html"));
+
     http.createServer((req, res) => {
         let body = "";
         req.on("data", chunk => body += chunk);
         if (req.method === "POST" && req.url === "/req-asset") {
             req.on("end", () => {
                 body = JSON.parse(body);
-
-                const file_path = path.join(__assets, ...body);
-                const file_buffer = fs.readFileSync(file_path);
+                
+                const file_path = path.join(__assets, body);
+                const file_buffer = fs.createReadStream(file_path);
                 const file_mime = mime[path.parse(file_path).ext.split('.')[1]];
 
                 res.writeHead(200, {
-                    "Content-type": file_mime
+                    "Content-type": file_mime,
                 });
-                res.end(file_buffer)
+                file_buffer.pipe(res);
             })
         } else if (req.method === "POST" && req.url === "/login-page") {
             req.on("end", () => {
@@ -75,6 +86,32 @@ app.whenReady().then(() => {
                     db.close();
                 });
             })
+        } else if (req.method === "POST" && req.url === "/menu-page/background-music-toggle/") {
+            req.on("end", () => {
+                body = JSON.parse(body);
+
+                const config_file = JSON.parse(fs.readFileSync(path.join(__dirname, "data", "config.json"), "utf8"));
+                
+                if (body.purpose === "post") {
+                    config_file.menuPage.backgroundMusicToggle = body.state
+                    fs.writeFileSync(path.join(__dirname, "data", "config.json"), JSON.stringify(config_file));
+                    res.writeHead(200);
+                    res.end();
+                }
+                if (body.purpose === "get") {
+                    res.writeHead(200, {
+                        "Content-Type" : "application/json"
+                    });
+                    res.end(JSON.stringify({state: config_file.menuPage.backgroundMusicToggle}));
+                }
+            })
+        } else if (req.method === "GET") {
+            if (req.url === "/animejs") {
+                res.writeHead(200, {
+                    "Content-Type" : "application/javascript",
+                });
+                res.end(fs.readFileSync(path.join(__assets, "lib", "anime.iife.js")));
+            }
         } else {
             res.writeHead(404);
             res.end("Not Found")

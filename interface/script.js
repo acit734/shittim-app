@@ -1,4 +1,4 @@
-(() => {
+document.addEventListener("DOMContentLoaded", () => {
 function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -112,7 +112,6 @@ const loading_page_loading_logo = document.querySelector(".loading-page#loading-
 const loading_page_progress_bar = document.querySelector(".loading-page#progress-bar");
 // !SECTION
 // SECTION Menu Page
-const main_menu_page = document.querySelector(".main#menu-page");
 const menu_page_interlude_image = document.querySelector(".menu-page#interlude-image");
 const menu_page_background_video = document.querySelector(".menu-page#background-video");
 const menu_page_transition_logo = document.querySelector(".menu-page#transition-logo");
@@ -511,6 +510,7 @@ window.addEventListener("resize", loading_page_canvas_resize)
 // SECTION Menu Page
 let menu_page = {
     // Elements
+    main : document.querySelector(".main#menu-page"),
     selection_object_application: document.querySelector(".menu-page.selection-object#application"),
     selection_container: document.querySelector(".menu-page#selection-container"),
     music_sound_toggle: document.querySelector(".menu-page#music-sound-toggle"),
@@ -528,7 +528,7 @@ let menu_page = {
 
     // Class
     transition_screen_particle: class {
-        constructor(x, y, angle) {
+        constructor(x, y, angle, duration) {
             this.x = x;
             this.y = y;
             this.size = 0;
@@ -536,7 +536,7 @@ let menu_page = {
             this.alpha = 0;
             this.start = performance.now();
             this.end_came_in = this.start + 500;
-            this.end_stand_by = this.end_came_in + 4000;
+            this.end_stand_by = this.end_came_in + duration;
             this.end_came_out = this.end_stand_by + 500;
             this.finish = false;
         }
@@ -616,8 +616,7 @@ let menu_page = {
         window.close();
     },
     selection_object_click: function() {
-        menu_page.generate_transition_from_particle();
-        menu_page.display_transition_motive(this);
+        menu_page.display_transition_destination(this);
     },
     window_resize: () => {
         menu_page.transition_canvas.width = window.innerWidth;
@@ -696,13 +695,14 @@ let menu_page = {
             requestAnimationFrame(animate_particles);
         }
         function push_generator(x_base, y_base, flip, direction) {
+            const duration = 4000;
             const particle_function = async (y_param = y_base) => {
                     if (y_param <= -30) return;
                     const x = x_base;
                     const y = y_param;
                     const angle = flip;
 
-                    particles.push(new menu_page.transition_screen_particle(x, y, angle))
+                    particles.push(new menu_page.transition_screen_particle(x, y, angle, duration))
 
                     await wait(100);
 
@@ -741,9 +741,15 @@ let menu_page = {
         Promise.all(particle_generator.top.map(fn => fn()));
         animation_id = requestAnimationFrame(animate_particles);
     },
-    display_transition_motive: async (selection) => {
+    display_transition_destination: async (selection) => {
+        const application_page_main = application_page.general.main;
+        const transition_screen = menu_page.transition_screen;
         const transition_text = menu_page.transition_text;
         const transition_logo = menu_page.transition_logo;
+        const menu_page_main = menu_page.main;
+        const navbar = menu_page.navbar;
+
+        menu_page.generate_transition_from_particle();
 
         const motive = selection.querySelector(".menu-page.selection-text").textContent;
         transition_text.textContent = motive;
@@ -758,10 +764,16 @@ let menu_page = {
         await wait(500);
 
         transition_text.style.opacity = '1';
+        application_page_main.appendChild(navbar);
+        menu_page_main.style.visibility = "hidden";
 
         await wait (2250);
 
         transition_text.style.opacity = '0';
+
+        await wait(500);
+
+        transition_screen.style.pointerEvents = "none";
     },
 
     //Init
@@ -784,5 +796,13 @@ let menu_page = {
         menu_page.transition_canvas_ctx = menu_page.transition_canvas.getContext("2d");
     }
 };
+
+let application_page = {
+    general: {
+        main: document.querySelector(".main#application-page")
+    },
+    application_list: {}
+}
+
 menu_page._init();
-})()
+})

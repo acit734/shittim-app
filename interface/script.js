@@ -158,6 +158,7 @@ let stored_data = {};
         ["audio/BA-OST/Daily_Routine_24_7.mp3"],
         ["image/menu-page/BG_ComputerCenter.jpg", (obj) => {
             menu_page.selection_object_application.style.backgroundImage = `url(${obj})`;
+            application_page.app_list.element.main.style.backgroundImage = `url(${obj})`
         }]
     ];
     let completed_req = 0;
@@ -663,7 +664,7 @@ let menu_page = {
         if (menu_page.date.textContent === null || parseInt(menu_page.date.textContent.split(' ')[0]) !== day) menu_page.date.textContent = `${day} ${month} ${year}`;
         if (menu_page.time.textContent === null || parseInt(menu_page.time.textContent.split(':')[2]) !== second) menu_page.time.textContent = `${hour}:${minute}:${second}`;
     },
-    generate_transition_from_particle: () => {
+    generate_transition_from_particle: (duration) => {
         menu_page.window_resize();
         menu_page.transition_screen.style.pointerEvents = "auto";
 
@@ -687,7 +688,7 @@ let menu_page = {
                 particle.transitions();
             }));
 
-            particles.filter(particle => !particle.finish)
+            particles = particles.filter(particle => !particle.finish)
             if (particles.length === 0) {
                 cancelAnimationFrame(animation_id);
                 return;
@@ -695,7 +696,6 @@ let menu_page = {
             requestAnimationFrame(animate_particles);
         }
         function push_generator(x_base, y_base, flip, direction) {
-            const duration = 4000;
             const particle_function = async (y_param = y_base) => {
                     if (y_param <= -30) return;
                     const x = x_base;
@@ -742,14 +742,15 @@ let menu_page = {
         animation_id = requestAnimationFrame(animate_particles);
     },
     display_transition_destination: async (selection) => {
-        const application_page_main = application_page.general.main;
+        const application_page_main = application_page.general.elements.main;
         const transition_screen = menu_page.transition_screen;
         const transition_text = menu_page.transition_text;
         const transition_logo = menu_page.transition_logo;
         const menu_page_main = menu_page.main;
         const navbar = menu_page.navbar;
+        const app_page_exit_init = application_page.general.function_general.exit_button_init;
 
-        menu_page.generate_transition_from_particle();
+        menu_page.generate_transition_from_particle(4000);
 
         const motive = selection.querySelector(".menu-page.selection-text").textContent;
         transition_text.textContent = motive;
@@ -766,8 +767,10 @@ let menu_page = {
         transition_text.style.opacity = '1';
         application_page_main.appendChild(navbar);
         menu_page_main.style.visibility = "hidden";
+        app_page_exit_init();
+        application_page.general.function_general.activate_selected(motive);
 
-        await wait (2250);
+        await wait (2000);
 
         transition_text.style.opacity = '0';
 
@@ -799,9 +802,54 @@ let menu_page = {
 
 let application_page = {
     general: {
-        main: document.querySelector(".main#application-page")
+        elements: {
+            main: document.querySelector(".main#application-page")
+        },
+
+        function_general: {
+            exit_button_init: () => {
+                const exit_button = menu_page.exit_button;
+                const app_page_exbtn_click = application_page.general.functions_event_listener.exit_button_click;
+
+                exit_button.removeEventListener("click", menu_page.exit_button_click);
+                exit_button.addEventListener("click", app_page_exbtn_click);
+            },
+            activate_selected: (selected) => {
+                const mapping = {
+                    Aplikasi: "app-list"
+                }
+                application_page.general.elements.main.querySelector(`.application#${mapping[selected]}`).style.visibility = "visible";
+            }
+        },
+
+        functions_event_listener: {
+            exit_button_click: async () => {
+                const exit_button = menu_page.exit_button;
+                const exit_button_click = menu_page.exit_button_click;
+                const app_page_exbtn_click = application_page.general.functions_event_listener.exit_button_click;
+                const generate_particles = menu_page.generate_transition_from_particle;
+                const navbar = menu_page.navbar;
+                const menu_page_main = menu_page.main;
+                const transition_ptr_event = menu_page.transition_screen;
+
+                generate_particles(1000);
+                
+                await wait(1000);
+
+                menu_page_main.appendChild(navbar);
+                transition_ptr_event.style.pointerEvents = "none";
+                menu_page_main.style.visibility = "visible";
+                exit_button.removeEventListener("click", app_page_exbtn_click);
+                exit_button.addEventListener("click", exit_button_click);
+            }
+        }
     },
-    application_list: {}
+
+    app_list: {
+        element: {
+            main: document.querySelector(".application#app-list"),
+        }
+    }
 }
 
 menu_page._init();

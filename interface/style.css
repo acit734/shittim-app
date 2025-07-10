@@ -492,3 +492,19 @@ body {
     height: 100%;
     background-color: black;
 }
+
+/* SECTION App List */
+.application {
+    visibility: hidden;
+}
+
+.application#app-list {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-position: center;
+    background-size: cover;
+    filter: blur(10px);
+}

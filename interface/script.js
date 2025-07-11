@@ -1,3 +1,5 @@
+import { app_list } from "./apps/app_list";
+
 document.addEventListener("DOMContentLoaded", () => {
 function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -749,11 +751,16 @@ let menu_page = {
         const menu_page_main = menu_page.main;
         const navbar = menu_page.navbar;
         const app_page_exit_init = application_page.general.function_general.exit_button_init;
+        let audio_volumed;
 
         menu_page.generate_transition_from_particle(4000);
 
         const motive = selection.querySelector(".menu-page.selection-text").textContent;
         transition_text.textContent = motive;
+        if (menu_page.background_music.volume === 1) {
+            application_page.general.function_general.audio_fadeout(1000, menu_page.background_music);
+            audio_volumed = true;
+        };
         await wait(500);
 
         transition_logo.style.opacity = '1';
@@ -775,6 +782,7 @@ let menu_page = {
         transition_text.style.opacity = '0';
 
         await wait(500);
+        if (audio_volumed) application_page.general.function_general.audio_fadein(1000, menu_page.background_music);
 
         transition_screen.style.pointerEvents = "none";
     },
@@ -819,6 +827,50 @@ let application_page = {
                     Aplikasi: "app-list"
                 }
                 application_page.general.elements.main.querySelector(`.application#${mapping[selected]}`).style.visibility = "visible";
+            },
+            audio_fadeout: (duration, audio) => {
+                const start = performance.now();
+                let id;
+
+                function fadeOut() {
+                    const end = performance.now();
+                    const value = 1 - ((end - start) / duration);
+
+                    if (value <= 0.1) {
+                        audio.volume = 0;
+                        cancelAnimationFrame(id);
+                        return;
+                    }
+
+                    audio.volume = value;
+                    requestAnimationFrame(fadeOut);
+                }
+
+                id = requestAnimationFrame(fadeOut);
+            },
+            audio_fadein: (duration, audio) => {
+                const start = performance.now();
+                let id;
+
+                function fadeIn() {
+                    const end = performance.now();
+                    const value = (end - start) / duration;
+
+                    if (value >= 1) {
+                        audio.volume = 1;
+                        cancelAnimationFrame(id);
+                        return;
+                    }
+
+                    audio.volume = value;
+                    requestAnimationFrame(fadeIn);
+                }
+
+                id = requestAnimationFrame(fadeIn);
+            },
+            fetch_module: async (module_to_fetch) => {
+                const module = await import(`http://localhost:3000/app-module/${module_to_fetch}`);
+                return module.main;
             }
         },
 
@@ -845,11 +897,8 @@ let application_page = {
         }
     },
 
-    app_list: {
-        element: {
-            main: document.querySelector(".application#app-list"),
-        }
-    }
+    app_list: async () => {
+    },
 }
 
 menu_page._init();

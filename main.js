@@ -9,6 +9,7 @@ const bcrypt = require("bcrypt");
 const http = require("http");
 const path = require("path");
 const fs = require("fs");
+const { URL } = require("url"); 
 let music_metadata;
 
 (async () => {
@@ -111,6 +112,10 @@ app.whenReady().then(() => {
                     "Content-Type" : "application/javascript",
                 });
                 res.end(fs.readFileSync(path.join(__assets, "lib", "anime.iife.js")));
+            } else if (req.url.includes(/^\/data\/([^\/]+)\.js$/)) {
+                res.writeHead(200, {
+                    "Content-Type" : "application/javascript"
+                })
             }
         } else {
             res.writeHead(404);

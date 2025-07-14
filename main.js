@@ -112,10 +112,17 @@ app.whenReady().then(() => {
                     "Content-Type" : "application/javascript",
                 });
                 res.end(fs.readFileSync(path.join(__assets, "lib", "anime.iife.js")));
-            } else if (req.url.includes(/^\/data\/([^\/]+)\.js$/)) {
+            } else if (req.url.includes("/app-module/")) {
+                const mod_name = req.url.split('/')[2];
+                const mod_path = path.join(__interface, "apps", mod_name);
+                const file_stream = fs.createReadStream(mod_path);
+
                 res.writeHead(200, {
                     "Content-Type" : "application/javascript"
-                })
+                });
+
+                file_stream.pipe(res);
+                file_stream.on("error", (e) => console.error(e));
             }
         } else {
             res.writeHead(404);

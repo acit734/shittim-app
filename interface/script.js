@@ -1,5 +1,3 @@
-import { app_list } from "./apps/app_list";
-
 document.addEventListener("DOMContentLoaded", () => {
 function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -122,7 +120,7 @@ const menu_page_transition_logo = document.querySelector(".menu-page#transition-
 
 // SECTION: Asset load
 let stored_data = {};
-(() => {
+function load_data() {
     function update_progress() {
         const progress = ((completed_req / data_req.length) * 100).toFixed(0);
         loading_page_progress_bar.style.width = `${progress}%`;
@@ -202,7 +200,7 @@ let stored_data = {};
         await wait(3100);
         loading_page_particles = null;
     });
-})();
+};
 // !SECTION
 
 // SECTION: Login Page
@@ -416,7 +414,7 @@ function loading_page_random_gray() {
     return `${value}, ${value}, ${value}, `;
 }
 async function loading_page_init_particle(count) {
-    for (i = 0; i < count; i++) {
+    for (let i = 0; i < count; i++) {
         let size = Math.random() * 20 + 10;
         let x = Math.random() * loading_page_particle_canvas.width;
         let y = Math.random() * loading_page_particle_canvas.height;
@@ -870,8 +868,8 @@ let application_page = {
             },
             fetch_module: async (module_to_fetch) => {
                 const module = await import(`http://localhost:3000/app-module/${module_to_fetch}`);
-                return module.main;
-            }
+                return module.default;
+            },
         },
 
         functions_event_listener: {
@@ -894,12 +892,27 @@ let application_page = {
                 exit_button.removeEventListener("click", app_page_exbtn_click);
                 exit_button.addEventListener("click", exit_button_click);
             }
+        },
+
+        _init: async () => {
+            const start_fetch = async function(name) {
+                const mod = await application_page.general.function_general.fetch_module(`${name}.js`);
+                application_page[name] = mod;
+                return;
+            };
+            const module_promises = [
+                start_fetch("app_list"),
+            ];
+
+            await Promise.all(module_promises).then(() => {
+                load_data();
+            });
         }
     },
 
-    app_list: async () => {
-    },
-}
+    app_list: null,
+};
 
 menu_page._init();
-})
+application_page.general._init();
+});

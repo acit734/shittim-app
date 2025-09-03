@@ -159,6 +159,11 @@ function load_data() {
         ["image/menu-page/BG_ComputerCenter.jpg", (obj) => {
             menu_page.selection_object_application.style.backgroundImage = `url(${obj})`;
             application_page.app_list.element.main.style.backgroundImage = `url(${obj})`
+        }],
+        ["image/app-list/arona.png", (obj) => {
+            console.log(application_page);
+            console.log(obj);
+            application_page.app_list.element.arona.style.backgroundImage = `url(${obj})`;
         }]
     ];
     let completed_req = 0;

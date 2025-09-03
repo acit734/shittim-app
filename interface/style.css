@@ -508,3 +508,20 @@ body {
     background-size: cover;
     filter: blur(10px);
 }
+
+.app-list#arona {
+    position: absolute;
+    bottom: -20%;
+    left: -100px;
+    height: 90%;
+    aspect-ratio: 1/1;
+    pointer-events: none;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.app-list#background-image {
+    position: absolute;
+    /* ... */
+}
